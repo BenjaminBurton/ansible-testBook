@@ -21,12 +21,12 @@ jobs:
 
     - name: Checkout code
       run: |
-        git clone https://github.com/BenjaminBurton/ansible-testBook.git /Users/Apple/Documents/LevLUp/AWS/Projects/CDA/CI:CD/Ansible
+        git clone https://github.com/BenjaminBurton/ansible-testBook.git $GITHUB_WORKSPACE/ansible
 
     - name: Upload to S3
       run: |
-        aws s3 cp /Users/Apple/Documents/LevLUp/AWS/Projects/CDA/CI:CD/Ansible/index.html s3://ansible-testrun/index.html --acl public-read
-        aws s3 cp /Users/Apple/Documents/LevLUp/AWS/Projects/CDA/CI:CD/Ansible/resume.css s3://ansible-testrun/resume.css --acl public-read
+        aws s3 cp $GITHUB_WORKSPACE/ansible/index.html s3://ansible-testrun/index.html --acl public-read
+        aws s3 cp $GITHUB_WORKSPACE/ansible/resume.css s3://ansible-testrun/resume.css --acl public-read
       env:
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -35,7 +35,7 @@ jobs:
     - name: Invalidate CloudFront
       run: |
         aws cloudfront create-invalidation \
-          --distribution-id E3AGBKPOHEWHPQ  \
+          --distribution-id E2JL33EXZRPDR0 \
           --paths "/index.html"
       env:
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
