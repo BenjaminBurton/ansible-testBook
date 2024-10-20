@@ -10,34 +10,27 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v2
+      # Step 1: Checkout the repository to access index.html
+      - name: Checkout code
+        uses: actions/checkout@v2
 
-    - name: Configure AWS credentials
-      run: |
-        echo "AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}" >> $GITHUB_ENV
-        echo "AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}" >> $GITHUB_ENV
-        echo "AWS_DEFAULT_REGION=us-east-1" >> $GITHUB_ENV
+      # Step 2: Configure AWS credentials
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1  # Change to your region
 
-    - name: Checkout code
-      run: |
-        git clone https://github.com/BenjaminBurton/ansible-testBook.git $GITHUB_WORKSPACE/ansible
+      # Step 3: Upload index.html to S3 bucket
+      - name: Upload index.html to S3
+        run: |
+          aws s3 cp index.html s3://mylevelupcloudresume/index.html --acl public-read
+          aws s3 cp resume.css s3://mylevelupcloudresume/resume.css --acl public-read
 
-    - name: Upload to S3
-      run: |
-        aws s3 cp $GITHUB_WORKSPACE/ansible/index.html s3://ansible-testrun/index.html --acl public-read
-        aws s3 cp $GITHUB_WORKSPACE/ansible/resume.css s3://ansible-testrun/resume.css --acl public-read
-      env:
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        AWS_DEFAULT_REGION: us-east-1
-
-    - name: Invalidate CloudFront
-      run: |
-        aws cloudfront create-invalidation \
-          --distribution-id E2JL33EXZRPDR0 \
-          --paths "/index.html"
-      env:
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        AWS_DEFAULT_REGION: us-east-1
+      # Step 4: Invalidate CloudFront cache to serve updated content
+      - name: Invalidate CloudFront
+        run: |
+          aws cloudfront create-invalidation \
+            --distribution-id E3AGBKPOHEWHPQ   \
+            --paths "/index.html"
